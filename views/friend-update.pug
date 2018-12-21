@@ -1,0 +1,32 @@
+extends layout
+block content
+  h1 #{title}
+  form(method='post' action=`/friend/update/${friend._id}`)
+    div(style="display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); grid-gap: 1em;")
+      #form-group
+        label First Name
+        input(class="form-control" name="first_name" type="text" value=friend.first_name)
+      #form-group
+        label Last Name:
+        input(class="form-control" name="last_name" type="text" value=friend.last_name)
+      #form-group
+        label Email:
+        input(class="form-control" name="email" type="email" value=friend.email)
+      #form-group
+        label Phone: 
+        input(class="form-control" name="phone" type="phone" value=friend.phone)
+      #form-group
+        label Address
+        input(class="form-control" name="address" type="text" value=friend.address)
+      #form-group
+        label State:
+        select.custom-select(name="state")
+          for state in states
+            if state === friend.state
+              option(value=state selected)= state
+            else
+              option(value=state)= state 
+    <br/>
+    button.btn.btn-primary(type='submit') save
+
+

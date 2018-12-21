@@ -1,0 +1,10 @@
+extends layout
+block content
+
+  h2= title
+
+  .d-flex.flex-row.flex-wrap.justify-content-around   
+      each friend, i in friends
+        div
+          p 
+          a.btn.btn-default(href=`/friend/details/${friend._id}`) #{friend.first_name} #{friend.last_name}

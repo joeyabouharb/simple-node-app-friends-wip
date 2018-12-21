@@ -1,0 +1,39 @@
+doctype html
+html
+    head
+        title my first node application!
+        link(rel='stylesheet' href='/public/css/app.css')
+    body.container-fluid
+        header 
+            nav.navbar.navbar-expand-lg.navbar-light
+                a.navbar-brand(href="/") Navbar
+
+                button.navbar-toggler(type='button' data-toggle='collapse' 
+                data-target='#navbarContent'
+                aria-controls='navbarContent' aria-expanded='false'
+                aria-label='Toggle navigation')
+
+                    span.navbar-toggler-icon(href='/')
+                        
+                navbar.collapse.navbar-collapse(id='navbarContent')
+                    ul.nav.navbar-nav
+                        li.mr-auto.ml-auto
+                            a.nav-link(href='/') Home
+                        li.mr-auto.ml-auto
+                            a.nav-link(href='/friend/add') Add Friend
+                        li.mr-auto.ml-auto
+                            a.nav-link(href='/friend/details') Add Friend
+                        li.mr-auto.ml-auto
+                            a.nav-link(href='/users/login') Login
+     
+        main.container
+            != messages('messages', locals)
+            if errors
+                each error, i in errors
+                    div(class="alert alert-danger") #{error.msg}
+            block content
+        br
+        hr
+        footer
+            p Copyright &copy; 2018
+    script(src='/public/js/app.js')

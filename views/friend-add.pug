@@ -1,0 +1,30 @@
+extends layout
+block content
+  h1 #{title}
+  
+  form(method='post' action="/friend/add")
+    div(style="display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); grid-gap: 1em;")
+      #form-group
+        label First Name
+        input(class="form-control" name="first_name" type="text")
+      #form-group
+        label Last Name:
+        input(class="form-control" name="last_name" type="text")
+      #form-group
+        label Email:
+        input(class="form-control" name="email" type="email")
+      #form-group
+        label Phone: 
+        input(class="form-control" name="phone" type="phone")
+      #form-group
+        label Address
+        input(class="form-control" name="address" type="text")
+      #form-group
+        label State:
+        select.custom-select(name="state")
+          for state in states
+            option(value=state)= state          
+    br
+    button.btn.btn-primary(type='submit') save
+
+

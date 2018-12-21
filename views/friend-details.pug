@@ -1,0 +1,19 @@
+extends layout
+block content
+
+  h2.text-center= title
+
+  main.d-flex.flex-row.flex-wrap.justify-content-center
+     
+    div.d-flex.flex-column.align-items-center.bg-primary.text-light.shadow.rounded
+      .img-fluid
+      img.m-2.rounded.shadow(src='/public/img/drake.jpg')
+      p Name: #{friend.first_name} #{friend.last_name}
+      p Email: #{friend.email}
+      p Phone: #{friend.phone}
+      p Address: #{friend.addess} #{friend.postalcode} #{friend.state}
+      div.m-2.p-2
+        a.btn.btn-danger.mr-2.delete-friend(data-id=friend._id) Delete
+        a.btn.btn-light.ml-2(href=`/friend/update/${friend._id}`) Edit
+      
+
