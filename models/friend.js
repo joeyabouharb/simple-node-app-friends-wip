@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const articleSchema = mongoose.Schema({
+const friendSchema = mongoose.Schema({
   first_name: {
     type: String,
     required: true,
@@ -29,4 +29,4 @@ const articleSchema = mongoose.Schema({
 /* exported variableName */
 // eslint-disable-next-line no-unused-vars
 const Friend = module.exports;
-module.exports = mongoose.model('friends', articleSchema);
+module.exports = mongoose.model('friends', friendSchema);

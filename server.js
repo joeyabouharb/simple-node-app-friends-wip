@@ -10,14 +10,23 @@ const path = require('path');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const expressValidator = require('express-validator');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+
 // eslint-disable-next-line no-unused-vars
 const flash = require('connect-flash');
 const session = require('express-session');
+
 /* load local components ie. models */
 const Friend = require('./models/friend');
-const States = require('./libs/statesCollection');
+const User = require('./models/user');
+
 /* set up express framework */
 const app = express();
+
+// load up routes
+const friendRouter = require('./routes/friend-routes');
+const accountRouter = require('./routes/account-routes');
 
 /* set up mongoose to connect to our MongoDb server */
 mongoose.set('useNewUrlParser', true);
@@ -36,12 +45,33 @@ db.once('open', () => {
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
-// configure middleware
-// parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: false }));
 
-// parse application/json
-app.use(bodyParser.json());
+// configure authentication cookies
+passport.use(new LocalStrategy(
+  (username, password, done) => {
+    User.findOne({ username }, (err, user) => {
+      if (err) { return done(err); }
+      if (!user) {
+        return done(null, false, { message: 'Incorrect username or password.' });
+      }
+      if (!user.validPassword(password)) {
+        return done(null, false, { message: 'Incorrect username or password.' });
+      }
+      return done(null, user);
+    });
+  },
+));
+// store userId in session
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser((id, done) => {
+  User.findById(id, (err, user) => {
+    done(err, user);
+  });
+});
+// configure middleware
 
 // static files
 app.use('/public', express.static(path.join(__dirname, 'public')));
@@ -52,6 +82,16 @@ app.use(session({
   resave: true,
   saveUninitialized: true,
 }));
+
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }));
+
+// parse application/json
+app.use(bodyParser.json());
+
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Express Messages Middleware
 app.use(require('connect-flash')());
@@ -80,7 +120,7 @@ app.use(expressValidator({
   },
 }));
 
-// routes
+// route setup
 app.get('/', (req, res) => {
   Friend.find({}, 'first_name last_name ', (err, friends) => {
     if (err) {
@@ -93,107 +133,9 @@ app.get('/', (req, res) => {
     }
   });
 });
-
-app.get('/friend/details/:id', (req, res) => {
-  Friend.findById(req.params.id, (err, friend) => {
-    if (err) {
-      console.log(err);
-    }
-
-    res.render('friend-details', {
-      title: 'Online Contact Book Home page',
-      friend,
-    });
-  });
-});
-
-app.get('/friend/add', (req, res) => {
-  res.render('friend-add', {
-    title: 'Add Friend Details',
-    states: States.states,
-  });
-});
-
-app.post('/friend/add', (req, res) => {
-  req.checkBody('first_name', 'first name is required').notEmpty();
-  req.checkBody('last_name', 'last name required').notEmpty();
-  req.checkBody('email', 'email required').notEmpty();
-  req.checkBody('email', 'this is not a valid email').isEmail();
-  req.checkBody('address', 'first name is required').notEmpty();
-  req.checkBody('state', 'state address name required').notEmpty();
-  req.checkBody('state', 'Please enter a valid state address').contains(States.states);
-  req.checkBody('postalcode', 'postal code is required').notEmpty();
-  req.checkBody('postalcode', 'not a postal code').isPostalCode();
-  req.checkBody('phone', 'phone required').notEmpty();
-  req.checkBody('phone', 'please enter a valid mobile phone').isMobilePhone();
-
-  const errors = req.validationErrors();
-
-  if (errors) {
-    res.render('add_article', {
-      title: 'Add Article',
-      errors,
-    });
-  } else {
-    const friend = new Friend();
-    friend.first_name = req.body.first_name;
-    friend.last_name = req.body.last_name;
-    friend.email = req.body.email;
-    friend.address = req.body.address;
-    friend.state = req.body.state;
-    friend.phone = req.body.phone;
-    friend.save((err) => {
-      if (err) {
-        console.log(err);
-      } else {
-        req.flash('success', 'Friend Added');
-        res.redirect('/');
-      }
-    });
-  }
-});
-
-app.delete('/friend/delete/:id', (req, res) => {
-  Friend.findByIdAndDelete(req.params.id, (err) => {
-    if (err) console.log(err);
-    else {
-      res.send('success');
-    }
-  });
-});
-
-app.get('/friend/update/:id', (req, res) => {
-  Friend.findById(req.params.id, (err, friend) => {
-    if (err) console.log(err);
-    else {
-      res.render('friend-update', {
-        states: States.states,
-        title: 'update friend',
-        friend,
-      });
-    }
-  });
-});
-
-app.post('/friend/update/:id', (req, res) => {
-  const friend = {};
-  friend.first_name = req.body.first_name;
-  friend.last_name = req.body.last_name;
-  friend.email = req.body.email;
-  friend.address = req.body.address;
-  friend.state = req.body.state;
-  friend.postalcode = req.body.postalcode;
-  friend.phone = req.body.phone;
-
-  const query = { _id: req.params.id };
-
-  Friend.update(query, friend, (err) => {
-    if (err) console.log(err);
-    else {
-      res.redirect('/');
-    }
-  });
-});
+// configure routes
+app.use('/friend', friendRouter);
+app.user('/account', accountRouter);
 
 // server setup
 app.listen(port, (err) => {
